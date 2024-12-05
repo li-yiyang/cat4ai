@@ -46,7 +46,12 @@
   (:documentation
    "The morphisms of Lens(C).
 
-Theory:
+To make a lens, use `lens' function:
+
+    (lens (lambda (a)    ...)
+          (lambda (a b*) ...))
+
+Definition:
 The category of Lenses for any Cartesian category C consists of:
 + objects: pairs (A, A')
   A, A' in C;
