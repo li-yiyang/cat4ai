@@ -37,13 +37,32 @@
   "CL Implementation for Categories for AI.
 Note that this is mainly for learning purpose and
 is not expected to be a serious ML library. "
-  :depends-on (ryo)
+  :depends-on (ryo alexandria)
   :serial t
   :components
   ((:module   lisp
     :pathname "lisp"
     :components
-    ((:file "package")))))
+    ((:file "package")
+
+     (:module   utils
+      :pathname "utils"
+      :components
+      ((:file "fns")
+       (:file "macros")))
+
+     (:module   cats
+      :pathname "cats"
+      :components
+      ((:file "cats")
+       (:file "cats-for-fn")
+       (:file "morphism")))
+
+     (:module   lens
+      :pathname "lens"
+      :components
+      ((:file   "lens")))
+     ))))
 
 
 ;;; cat4ai.asd ends here

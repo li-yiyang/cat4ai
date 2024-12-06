@@ -32,12 +32,14 @@
 
 (in-package :cat4ai)
 
-(defclass para ()
+(defclass para (abstract-morphism)
   ((morphism
     :initarg  :morphism
     :initform (error "Missing `:morphism'. ")
     :documentation
     "A pair map: f : P ⊗ A -> B"))
+  (:default-initargs :arity      2
+                     :dest-arity 1)
   (:documentation
    "Parametrized Morphism map of Para(C).
 
@@ -51,8 +53,8 @@ A category Para(C) of a strict symmetric monoidal category C
 + object: C
 + morphism: f : P ⊗ A -> B is a pair (P, A) map (A, B ∈ C)
 + identity object: (I, 1_A) (I ⊗ A = A)
-+ compose: (P, f) : A -> B ○ (P', f') : B -> C is
-  (P' ⊗ P, (1 ⊗ f);g)
++ compose: compose of f1 : P1 ⊗ A -> B and f2 : P2 ⊗ A -> B
+  is f : P2 ⊗ P1 ⊗ A -> B (and increase arity of para)
 
 Graph:
 
@@ -64,12 +66,20 @@ Graph:
 "))
 
 (defun para (morphism)
-  "Define a Parametrized Morphism. "
-  (make-instance 'para :morphism morphism))
+  "Define a Parametrized Morphism.
+The `morphism' should be a map with arity number >= 2."
+  (declare (morphism morphism))
+  (assert (arity<= morphism 2))
+  (if (typep morphism 'para)
+      morphism
+      (make-instance 'para :morphism morphism)))
 
-(defgeneric repara (para map)
+(defgeneric repara (para map &rest more-maps)
   (:documentation
-   "
+   "Reparametrize `para'.
+
+The number of input maps should equal to (1- (arity para)).
+
 Definition:
 A reparametrisation of (P, f) : A -> B in Para(C)
 by map α : Q -> P is the Para(X) map (Q, (α ⊗ 1_A);f) : A -> B.
@@ -88,17 +98,36 @@ Graph:
            #####
 "))
 
-(defmethod repara ((para para) (map function))
-  (let-slot* ((para morphism))
-    (setf morphism
-          (lambda (param arg)
-            (funcall morphism (funcall map param) arg)))))
+(defmethod repara ((para para) (map function) &rest more-maps)
+  (assert (every #'morphism-p more-maps))
+  (assert (length= more-maps (2- (arity para))))
+  (let-slot* ((para morphism arity))
+    (let* ((args   (dummy-args-list arity))
+           (params (mapcar* ((f (cons map more-maps))
+                             (p (subseq args 0 (1- (length args)))))
+                     `(funcall ,f ,p))))
+      (para (eval `(lambda ,args (funcall ,morphism ,@params ,@(last args))))))))
+
+(defmethod composable ((para1 para) (para2 para))
+  (< (dest-arity para1) (arity para2)))
 
 (defmethod compose ((para1 para) (para2 para))
-  (let-slot* ((para1 (f morphism))
-              (para2 (g morphism)))
-    (para (lambda (param &rest param-arg)            ; Q . P arg
-            (funcall g (apply f param-arg))))))
+  (let-slot* ((para1 (f morphism) (f-dest dest-arity) (f-arg arity))
+              (para2 (g morphism) (g-dest dest-arity) (g-arg arity)))
+    (let* ((h-arg (1- (+ f-arg g-arg)))
+           (args  (dummy-args-list h-arg))
+           (fargs (subseq args (1- g-arg) (1- h-arg)))
+           (gargs (subseq args 0          (1- g-arg)))
+           (fcall `(funcall ,f ,@fargs ,@(last args)))
+           (gcall (if (= 1 f-dest)
+                      `(funcall ,g ,@gargs ,fcall)
+                      `(apply ,g (nconc (list ,@gargs)
+                                        (multiple-value-list ,fcall)))))
+           (para  (para (eval `(lambda ,args ,gcall)))))
+      (let-slot* ((para arity dest-arity))
+        (setf arity      h-arg
+              dest-arity g-dest)
+        para))))
 
 (defmethod -> ((para para) &rest args)
   (let-slot* ((para morphism))

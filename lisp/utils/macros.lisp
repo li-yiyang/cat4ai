@@ -1,15 +1,15 @@
-;;; utils.lisp --- Utils functions and macros for cat4ai
+;;; macros.lisp --- Utils macros for cat4ai
 
-;; File:        utils.lisp
-;; Description: Utils functions and macros for cat4ai
+;; File:        macros.lisp
+;; Description: Utils macros for cat4ai
 ;; Author:      凉凉
 ;; Maintainer:  凉凉
 ;; Copyright (c) 2024, 凉凉, all rights reserved
-;; Created: 2024-12-05 10:42
+;; Created: 2024-12-06 22:01
 ;; Version: 0.0.0
-;; Last-Updated: 2024-12-05 10:42
+;; Last-Updated: 2024-12-06 22:01
 ;;           By: 凉凉
-;; URL: https://github.com/li-yiyang/cat4ai
+;; URL: https://github.com/li-yiyang/cat4aihttps://li-yiyang.github.io
 ;; Keywords:
 ;; Compatibility:
 ;;
@@ -30,7 +30,7 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this package. If not, see <https://www.gnu.org/licenses/>.
 
-(in-package :cat4ai)
+(in-package :cat4ai.utils)
 
 (defmacro let-slot* (bindings &body body)
   "Binds slot variable.
@@ -50,4 +50,20 @@ Example:
         `(with-slots ,slots ,obj
            (let-slot* ,(rest bindings) ,@body)))))
 
-;;; utils.lisp ends here
+(defmacro let-values* (bindings &body body)
+  "Bind by `multiple-value-bind'.
+
+Example:
+
+    (let-values* ((vars expr-return-values))
+      ,@body)
+"
+  (if (endp bindings)
+      `(progn ,@body)
+      (let* ((binding (first  bindings))
+             (vars    (first  binding))
+             (expr    (second binding)))
+        `(multiple-value-bind ,vars ,expr
+           (let-values* ,(rest bindings) ,@body)))))
+
+;;; macros.lisp ends here

@@ -7,7 +7,7 @@
 ;; Copyright (c) 2024, 凉凉, all rights reserved
 ;; Created: 2024-12-05 00:56
 ;; Version: 0.0.0
-;; Last-Updated: 2024-12-05 00:56
+;; Last-Updated: 2024-12-07 02:44
 ;;           By: 凉凉
 ;; URL: https://github.com/li-yiyang/cat4ai
 ;; Keywords:
@@ -30,23 +30,64 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with this package. If not, see <https://www.gnu.org/licenses/>.
 
-(defpackage #:cat4ai
+(defpackage #:cat4ai.utils
   (:use :cl :ryo.macros :ryo.fns)
+  (:documentation
+   "Utils functions and macros for CAT4AI. ")
+  (:export
+   #:~<
+   #:~+
+   #:dummy-args-list
+   #:min-max-range-relationship
+   #:let-slot*
+   #:let-values*))
+
+(defpackage #:cat4ai.cats
+  (:use :cl :cat4ai.utils :ryo.macros :ryo.fns)
+  (:documentation
+   "Basic abstraction and experiments for category toolkits. ")
   (:export
    ;; cats
+   #:arity
+   #:dest-arity
    #:compose
    #:composes
+   #:composable
    #:combine
+   #:spread-combine
+   #:->
+   #:-<>
+
+   ;; cats-for-fn
+   ;; these functions should only be used as experiments
    #:pass
+   #:pass-rest
    #:lcurry
    #:rcurry
-   #:->
+   #:tunnel
 
-   ;; lens
-   #:<-
+   ;; morphism
+   #:morphism
+   #:morphism-p
+   #:abstract-morphism
+   ))
+
+(defpackage #:cat4ai.lens
+  (:use :cl :cat4ai.utils :cat4ai.cats :ryo.macros :ryo.fns)
+  (:documentation
+   "")
+  (:export
    #:lens
+   ))
 
-   ;; para
-   #:para))
+;; (defpackage #:cat4ai
+;;   (:use :cl :ryo.macros :ryo.fns)
+;;   (:export
+;;    ;; lens
+;;    #:<-
+;;    #:lens
+
+;;    ;; para
+;;    #:para))
 
 ;;; package.lisp ends here
